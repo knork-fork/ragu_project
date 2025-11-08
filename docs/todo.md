@@ -4,7 +4,7 @@
 
 Containers facing the public internet:
 
-- [ ] ragu-webserver
+- [x] ragu-webserver
     - nginx
 - [ ] ragu-frontend
     - on prod not a container, just static files served by nginx

@@ -1,0 +1,59 @@
+services:
+    # Public
+
+    webserver:
+        container_name: ragu-webserver
+        restart: unless-stopped
+        image : nginx:alpine
+        working_dir: /application
+        volumes:
+            - ./src/php-fpm-external:/application:ro
+            - ./src/php-fpm-internal:/internal:ro
+            - ./dockerconf/nginx/public.conf:/etc/nginx/conf.d/public.conf:ro
+            - ./dockerconf/nginx/internal.conf:/etc/nginx/conf.d/internal.conf:ro
+            - ./dockerconf/nginx/empty.conf:/etc/nginx/conf.d/default.conf:ro
+            - ./var/logs/nginx:/var/log/nginx
+        ports:
+            - 20002:80
+
+    #frontend
+    #    container_name: ragu-frontend
+
+    php-fpm-external:
+        container_name: ragu-php-fpm-external
+        restart: unless-stopped
+        build:
+            context: dockerconf/php-fpm
+            dockerfile: Dockerfile
+        working_dir: /application
+        extra_hosts:
+            - host.docker.internal:host-gateway
+        volumes:
+            - ./src/php-fpm-external:/application
+            - ./phpdocker/php-fpm/php-ini-overrides.ini:/etc/php/8.4/fpm/conf.d/99-overrides.ini
+            - ./phpdocker/php-fpm/php-ini-overrides.ini:/etc/php/8.4/cli/conf.d/99-overrides.ini
+            - ./var/logs/php-fpm-external:/var/log
+        environment:
+            - ALLOW_ENV_OVERRIDE=true
+
+    # Internal
+
+    php-fpm-internal:
+        container_name: ragu-php-fpm-internal
+        restart: unless-stopped
+        build:
+            context: dockerconf/php-fpm
+            dockerfile: Dockerfile
+        working_dir: /application
+        extra_hosts:
+            - host.docker.internal:host-gateway
+        volumes:
+            - ./src/php-fpm-internal:/internal
+            - ./phpdocker/php-fpm/php-ini-overrides.ini:/etc/php/8.4/fpm/conf.d/99-overrides.ini
+            - ./phpdocker/php-fpm/php-ini-overrides.ini:/etc/php/8.4/cli/conf.d/99-overrides.ini
+            - ./var/logs/php-fpm-internal:/var/log
+        environment:
+            - ALLOW_ENV_OVERRIDE=true
+
+volumes:
+    ragu-pgdata:
