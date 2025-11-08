@@ -28,6 +28,7 @@
     - cpu
 - rerank container
     - npr. bge-reranker-base
+        - note: bge-reranker-base ima 512 token limit, pa chunkovi moraju biti do 400 riječi
     - cpu
 - llm container
     - npr. qwen3:4b-instruct-2507-q4_K_M
