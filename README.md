@@ -1,3 +1,3 @@
-### Project Ragu
+### Project RAGu
 
 <img src="ragu.jpg">

@@ -1,0 +1,8 @@
+vendor/
+var/
+.phpunit.result.cache
+
+# IDEs and Editors
+.vscode/
+
+.env.local
