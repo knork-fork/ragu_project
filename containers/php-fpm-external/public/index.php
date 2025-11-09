@@ -1,9 +1,9 @@
 <?php
 
-echo 'hello from php-fpm-external';
+use App\Kernel;
 
-echo '<br>';
+require_once dirname(__DIR__).'/vendor/autoload_runtime.php';
 
-$response = file_get_contents('http://webserver:8081');
-
-echo 'response from internal service: ' . $response;
+return function (array $context) {
+    return new Kernel($context['APP_ENV'], (bool) $context['APP_DEBUG']);
+};
