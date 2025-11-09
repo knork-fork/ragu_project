@@ -1,0 +1,23 @@
+name: CI
+
+on: push
+
+jobs:
+  commit-check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      name: Checkout latest commit
+
+    - name: Set up Docker Compose
+      run: docker compose up -d --build
+
+    - name: Install Composer dependencies
+      run: docker exec ragu-php-fpm-external composer install --no-interaction && docker exec ragu-php-fpm-internal composer install --no-interaction
+    
+    - name: Run PHPStan
+      run: docker exec ragu-php-fpm-external vendor/phpstan/phpstan/phpstan && docker exec ragu-php-fpm-internal vendor/phpstan/phpstan/phpstan
+
+    - name: Run PHP-CS-Fixer
+      run: docker exec ragu-php-fpm-external vendor/friendsofphp/php-cs-fixer/php-cs-fixer fix --dry-run --allow-risky=yes --verbose --show-progress dots && docker exec ragu-php-fpm-internal vendor/friendsofphp/php-cs-fixer/php-cs-fixer fix --dry-run --allow-risky=yes --verbose --show-progress dots
