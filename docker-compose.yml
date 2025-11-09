@@ -30,8 +30,8 @@ services:
             - host.docker.internal:host-gateway
         volumes:
             - ./containers/php-fpm-external:/application-ext
-            - ./phpdocker/php-fpm/php-ini-overrides.ini:/etc/php/8.4/fpm/conf.d/99-overrides.ini
-            - ./phpdocker/php-fpm/php-ini-overrides.ini:/etc/php/8.4/cli/conf.d/99-overrides.ini
+            - ./dockerconf/php-fpm/php-ini-overrides.ini:/etc/php/8.4/fpm/conf.d/99-overrides.ini
+            - ./dockerconf/php-fpm/php-ini-overrides.ini:/etc/php/8.4/cli/conf.d/99-overrides.ini
             - ./var/logs/php-fpm-external:/application-ext/var/log
         environment:
             - ALLOW_ENV_OVERRIDE=true
@@ -49,8 +49,8 @@ services:
             - host.docker.internal:host-gateway
         volumes:
             - ./containers/php-fpm-internal:/application-int
-            - ./phpdocker/php-fpm/php-ini-overrides.ini:/etc/php/8.4/fpm/conf.d/99-overrides.ini
-            - ./phpdocker/php-fpm/php-ini-overrides.ini:/etc/php/8.4/cli/conf.d/99-overrides.ini
+            - ./dockerconf/php-fpm/php-ini-overrides.ini:/etc/php/8.4/fpm/conf.d/99-overrides.ini
+            - ./dockerconf/php-fpm/php-ini-overrides.ini:/etc/php/8.4/cli/conf.d/99-overrides.ini
             - ./var/logs/php-fpm-internal:/application-int/var/log
         environment:
             - ALLOW_ENV_OVERRIDE=true
