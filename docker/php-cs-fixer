@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Runs php-cs-fixer for both internal and external php-fpm
+# Uses grep to supress the **extremely** annoying message about parallel runner
+
+printf "\033[44mRunning php-cs-fixer for ragu-php-fpm-external\033[0m\n"
+docker exec -it ragu-php-fpm-external \
+  /application-ext/vendor/friendsofphp/php-cs-fixer/php-cs-fixer fix \
+  --ansi --allow-risky=yes --verbose --show-progress dots "$@" \
+  | grep -v --color=never 'You can enable parallel runner and speed up the analysis!'
+
+printf "\033[44mRunning php-cs-fixer for ragu-php-fpm-internal\033[0m\n"
+docker exec -it ragu-php-fpm-internal \
+  /application-int/vendor/friendsofphp/php-cs-fixer/php-cs-fixer fix \
+  --ansi --allow-risky=yes --verbose --show-progress dots "$@" \
+  | grep -v --color=never 'You can enable parallel runner and speed up the analysis!'

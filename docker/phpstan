@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+# Runs phpstan for both internal and external php-fpm
+
+printf "\033[44mRunning phpstan for ragu-php-fpm-external\033[0m\n"
+docker exec -it ragu-php-fpm-external /application-ext/vendor/phpstan/phpstan/phpstan "$@"
+printf "\033[44mRunning phpstan for ragu-php-fpm-internal\033[0m\n"
+docker exec -it ragu-php-fpm-internal /application-int/vendor/phpstan/phpstan/phpstan "$@"

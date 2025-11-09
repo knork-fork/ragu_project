@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Controller;
 
@@ -12,7 +13,7 @@ final class StatusController
     {
         $internalResponse = file_get_contents('http://webserver:8081/status');
 
-        $response = sprintf(
+        $response = \sprintf(
             'php-fpm-external: OK<br>php-fpm-internal: %s',
             $internalResponse
         );
