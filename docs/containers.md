@@ -61,3 +61,5 @@
     - Rerank - od 50 ostavi 20 po top score
     - MMR in API over those 20 using cosine(query_embed, chunk_embed) and cosine(chunk_i, chunk_j) → pick final 5–8
     - Build prompt → LLM
+- vidi chatgpt atlas https://openai.com/index/introducing-chatgpt-atlas/
+    - bilo bi zgodno da postoji neka npr. browser ekstenzija ili nek bude cijeli chromium rip koji će radit isto što i chatgpt atlas i slat na ragu
