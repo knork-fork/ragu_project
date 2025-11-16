@@ -22,8 +22,11 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        # todo: setup lexik_jwt_authentication, login_throttling etc.
+        # - { path: ^/auth/login, roles: IS_AUTHENTICATED_FULLY } # login
+        # - { path: ^/auth, roles: PUBLIC_ACCESS } # refresh
+        - { path: ^/api/status, roles: PUBLIC_ACCESS }
+        - { path: ^/,       roles: IS_AUTHENTICATED_FULLY }
 
 when@test:
     security:
