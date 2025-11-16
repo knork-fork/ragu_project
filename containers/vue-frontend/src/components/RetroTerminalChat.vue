@@ -18,7 +18,7 @@ const props = defineProps({
   profileAvatar:{ type: String, default: '' },
 })
 
-const emit = defineEmits(['action','error','modeChange'])
+const emit = defineEmits(['action', 'error', 'modeChange', 'logout'])
 
 /* ---------- SESSIONS ---------- */
 const STORAGE_KEY = 'rtc.sessions.v1'
@@ -238,7 +238,11 @@ const initials = computed(()=>{
 })
 const showMenu = ref(false)
 function toggleMenu(){ showMenu.value = !showMenu.value }
-function logout(){ emit('action','logout'); showMenu.value=false }
+function logout() {
+  // @logout in App.vue (calls handleLogout)
+  emit('logout')
+  showMenu.value = false
+}
 function settings(){ emit('action','settings'); showMenu.value=false }
 </script>
 
