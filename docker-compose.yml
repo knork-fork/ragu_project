@@ -16,8 +16,14 @@ services:
         ports:
             - 20002:80
 
-    #frontend
-    #    container_name: ragu-frontend
+    vue-frontend:
+        container_name: ragu-vue-frontend
+        restart: unless-stopped
+        image: node:20-alpine
+        working_dir: /application
+        volumes:
+            - './containers/vue-frontend:/application'
+        command: sh -c "npm install && npm run dev -- --host"
 
     php-fpm-external:
         container_name: ragu-php-fpm-external
