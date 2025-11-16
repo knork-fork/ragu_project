@@ -11,8 +11,9 @@ Containers facing the public internet:
 - [ ] ragu-php-fpm-external
     - auth + light backend communicating with internal API server
 - [ ] ragu-pgbouncer
-- [ ] ragu-monitoring
+- [x] ragu-monitoring
     - custom monitoring solution with auth etc.
+    - using external Beszel and Uptime Kuma
 
 ##### Internal
 
