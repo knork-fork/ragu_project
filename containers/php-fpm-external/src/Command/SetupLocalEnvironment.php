@@ -23,11 +23,23 @@ final class SetupLocalEnvironment extends Command
             file_put_contents('./.env.local', '');
         }
 
+        $this->setupEnv();
         $this->setupJwtConfig();
 
         $output->writeln('Local env setup.');
 
         return Command::SUCCESS;
+    }
+
+    private function setupEnv(): void
+    {
+        $config = $this->getConfigForTag('symfony/framework-bundle');
+
+        if (!isset($config['APP_ENV'])) {
+            $config['APP_ENV'] = 'prod';
+        }
+
+        $this->saveConfigForTag('symfony/framework-bundle', $config);
     }
 
     /**
