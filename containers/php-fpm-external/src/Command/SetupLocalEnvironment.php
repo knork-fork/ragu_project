@@ -58,7 +58,7 @@ final class SetupLocalEnvironment extends Command
 
         $keyDir = __DIR__ . '/../../config/jwt';
         if (!is_dir($keyDir)) {
-            mkdir($keyDir, 0o700, true);
+            mkdir($keyDir, 0o755, true);
         }
 
         $privateKey = $keyDir . '/private.pem';
@@ -69,6 +69,7 @@ final class SetupLocalEnvironment extends Command
                 escapeshellarg($privateKey)
             );
             $this->runCommand($cmd);
+            chmod($privateKey, 0o644);
         }
 
         $publicKey = $keyDir . '/public.pem';
@@ -80,6 +81,7 @@ final class SetupLocalEnvironment extends Command
                 escapeshellarg($publicKey)
             );
             $this->runCommand($cmd);
+            chmod($publicKey, 0o644);
         }
     }
 
