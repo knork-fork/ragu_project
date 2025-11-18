@@ -3,10 +3,10 @@ _security_logout:
     type: service
 
 jwt_create_token:
-    path: /auth/login
-    controller: App\Api\Controller\AuthController::loginAction
+    path: /api/auth/login
+    controller: App\Controller\AuthController::loginAction
     methods: POST
 
 gesdinet_jwt_refresh_token:
-    path:       /auth/refresh
-    controller: App\Api\Controller\AuthController::refreshAction
+    path:       /api/auth/refresh
+    controller: App\Controller\AuthController::refreshAction
