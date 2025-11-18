@@ -11,6 +11,8 @@ containers/php-fpm-external/docker/composer install
 containers/php-fpm-internal/docker/composer install
 
 containers/php-fpm-external/docker/console app:setup-env
+
+containers/ragu-postgres/init-db.sh local
 ```
 
 Set APP_ENV to "dev" in .env.local for development mode.

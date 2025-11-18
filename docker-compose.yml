@@ -61,5 +61,41 @@ services:
         environment:
             - ALLOW_ENV_OVERRIDE=true
 
+    postgres:
+        container_name: ragu-postgres
+        restart: unless-stopped
+        image: 'postgres:15-alpine'
+        working_dir: /application
+        volumes:
+            - './containers/ragu-postgres:/application'
+            - ragu-pgdata:/var/lib/postgresql/data
+        environment:
+            - POSTGRES_USER=ragu_user
+            - POSTGRES_PASSWORD=ragu_pass
+            - POSTGRES_DB=ragu_db
+
+    pgbouncer:
+        container_name: ragu-db
+        depends_on: 
+            - postgres
+        restart: unless-stopped
+        image: edoburu/pgbouncer:latest
+        # Don't expose pgbouncer port on prod!
+        ports:
+            - 20003:5435
+        environment:
+            DB_USER: ragu_user
+            DB_PASSWORD: ragu_pass
+            DB_HOST: ragu-postgres
+            DATABASES: |
+                ragu_db = host=ragu-postgres dbname=ragu_db
+                ragu_db_test = host=ragu-postgres dbname=ragu_db_test
+            POOL_MODE: transaction
+            MAX_CLIENT_CONN: 100
+            DEFAULT_POOL_SIZE: 20
+            LISTEN_PORT: 5435
+        volumes:
+            - ./containers/ragu-postgres/pgbouncer_userlist.txt:/etc/pgbouncer/userlist.txt:ro
+
 volumes:
     ragu-pgdata:
