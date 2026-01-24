@@ -5,6 +5,7 @@ namespace App\Tests\Functional\Controller;
 
 use App\Tests\Common\FunctionalTestCase;
 use App\Tests\Common\Request;
+use App\Tests\Common\Response;
 
 /**
  * @internal
@@ -18,7 +19,7 @@ final class StatusControllerTest extends FunctionalTestCase
             '/status'
         );
 
-        self::assertSame(200, $response->getStatusCode());
+        self::assertSame(Response::HTTP_OK, $response->getStatusCode());
         self::assertSame('php-fpm-external: OK<br>php-fpm-internal: OK', $response->getContent());
     }
 }
