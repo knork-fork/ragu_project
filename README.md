@@ -22,3 +22,11 @@ Set APP_ENV to "dev" in .env.local for development mode.
 ```bash
 containers/php-fpm-external/docker/console app:create-user
 ```
+
+#### Running Tests
+
+```bash
+containers/ragu-postgres/init-db.sh test
+
+docker/phpunit
+```
