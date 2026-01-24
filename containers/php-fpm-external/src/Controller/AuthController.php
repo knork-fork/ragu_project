@@ -65,12 +65,26 @@ final class AuthController extends AbstractController
         $passport = $this->refreshTokenAuthenticator->authenticate($request);
         $token = $this->refreshTokenAuthenticator->createToken($passport, $firewallName);
 
-        /** @var JsonResponse $response */
         $response = $this->refreshTokenAuthenticator->onAuthenticationSuccess($request, $token, $firewallName);
+        if ($response === null) {
+            throw new InvalidArgumentException('Response from onAuthenticationSuccess cannot be null');
+        }
+        $data = json_decode((string) $response->getContent(), true);
+        if (!\is_array($data)) {
+            throw new InvalidArgumentException('Response content is not a valid JSON array');
+        }
+
+        $tokenString = $data['token'] ?? null;
+        $refreshTokenString = $data['refresh_token'] ?? null;
+        if (!\is_string($tokenString) || !\is_string($refreshTokenString)) {
+            throw new InvalidArgumentException('Token or refresh token is missing or not a string');
+        }
 
         return $this->processResponse(
             $request,
-            $response
+            $this->responseFactory->createResponse(
+                $this->responseFactory->formatArrayForToken($tokenString, $refreshTokenString)
+            )
         );
     }
 

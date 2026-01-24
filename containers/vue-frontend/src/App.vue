@@ -115,17 +115,20 @@
       }
   
       const data = await res.json()
-      if (!data.token || !data.refresh_token) {
+      // Extract tokens from backend response structure
+      const accessTokenResp = data?.data?.token
+      const refreshTokenResp = data?.data?.refresh_token
+      if (!accessTokenResp || !refreshTokenResp) {
         clearAuth()
         return false
       }
   
-      if (!isTokenValid(data.token)) {
+      if (!isTokenValid(accessTokenResp)) {
         clearAuth()
         return false
       }
   
-      saveTokens(data.token, data.refresh_token)
+      saveTokens(accessTokenResp, refreshTokenResp)
       loginError.value = '' // ensure no error when we’re successfully logged in
       return true
     } catch (e) {
@@ -168,11 +171,11 @@
         return
       }
 
-      /*if (!isTokenValid(accessTokenResp)) {
+      if (!isTokenValid(accessTokenResp)) {
         clearAuth()
         loginError.value = 'Received expired token'
         return
-      }*/
+      }
 
       saveTokens(accessTokenResp, refreshTokenResp)
       loginError.value = ''
