@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Common;
 
-use Error;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -61,18 +60,11 @@ abstract class FunctionalTestCase extends TestCase
         $result = curl_exec($ch);
 
         if ($result === false) {
-            $errorMessage = curl_error($ch);
-            if ($errorMessage === 'Unsupported HTTP version in response') {
-                // This error message is not helpful and is returned by gc-app-test's internal PHP server, swap it with something barely more helpful
-                throw new Error('Incomplete HTTP response, error 500 thrown by gc-app-test\'s internal PHP server...');
-            }
             throw new RuntimeException(curl_error($ch));
         }
 
         $statusCode = curl_getinfo($ch, \CURLINFO_HTTP_CODE);
         $responseHeaders = [];
-
-        curl_close($ch);
 
         return new Response(
             (string) $result,
