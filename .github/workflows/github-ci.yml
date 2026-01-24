@@ -23,4 +23,4 @@ jobs:
       run: docker exec ragu-php-fpm-external vendor/friendsofphp/php-cs-fixer/php-cs-fixer fix --dry-run --allow-risky=yes --verbose --show-progress dots && docker exec ragu-php-fpm-internal vendor/friendsofphp/php-cs-fixer/php-cs-fixer fix --dry-run --allow-risky=yes --verbose --show-progress dots
 
     - name: Run PHPUnit tests
-      run: docker exec ragu-php-fpm-external php bin/phpunit && docker exec php ragu-php-fpm-internal bin/phpunit
+      run: docker exec ragu-php-fpm-external php bin/phpunit && docker exec ragu-php-fpm-internal php bin/phpunit
