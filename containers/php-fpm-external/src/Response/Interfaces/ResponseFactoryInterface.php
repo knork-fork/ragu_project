@@ -5,13 +5,14 @@ namespace App\Response\Interfaces;
 
 use App\Response\Item\ResourceItem;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 interface ResponseFactoryInterface
 {
     /**
      * @param mixed[] $data
      */
-    public function createResponse(array $data): JsonResponse;
+    public function createResponse(array $data, int $statusCode = Response::HTTP_OK): JsonResponse;
 
     /**
      * @param mixed[] $data

@@ -24,9 +24,9 @@ final class ResponseFactory implements ResponseFactoryInterface
     /**
      * @param mixed[] $data
      */
-    public function createResponse(array $data): JsonResponse
+    public function createResponse(array $data, int $statusCode = Response::HTTP_OK): JsonResponse
     {
-        return new JsonResponse($this->createResponseArray($data));
+        return new JsonResponse($this->createResponseArray($data), $statusCode);
     }
 
     /**
