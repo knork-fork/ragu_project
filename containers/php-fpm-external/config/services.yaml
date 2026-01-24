@@ -21,12 +21,10 @@ services:
 
     App\Controller\AuthController:
         arguments:
-            $JWTEncoder: '@Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTEncoderInterface'
             $JWTTokenManager: '@Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface'
             $responseFactory: '@App\Response\Interfaces\ResponseFactoryInterface'
             $refreshTokenTtl: '%gesdinet_jwt_refresh_token.ttl%'
             $refreshTokenAuthenticator: '@security.authenticator.refresh_jwt.auth'
-            $userRepository: '@App\Repository\Interfaces\UserRepositoryInterface'
             $refreshTokenGenerator: '@gesdinet.jwtrefreshtoken.refresh_token_generator'
             $managerRegistry: '@Doctrine\Persistence\ManagerRegistry'
         calls:

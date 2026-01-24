@@ -4,12 +4,10 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\RefreshToken;
-use App\Repository\Interfaces\UserRepositoryInterface;
 use App\Repository\RefreshTokenRepository;
 use App\Response\Interfaces\ResponseFactoryInterface;
 use Gesdinet\JWTRefreshTokenBundle\Generator\RefreshTokenGenerator;
 use Gesdinet\JWTRefreshTokenBundle\Security\Http\Authenticator\RefreshTokenAuthenticator;
-use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTEncoderInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bridge\Doctrine\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -20,13 +18,13 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 final class AuthController extends AbstractController
 {
+    private const REFRESH_TOKEN_HEADER = 'X-API-REFRESH-TOKEN';
+
     public function __construct(
-        private JWTEncoderInterface $JWTEncoder,
         private JWTTokenManagerInterface $JWTTokenManager,
         private ResponseFactoryInterface $responseFactory,
         private int $refreshTokenTtl,
         private RefreshTokenAuthenticator $refreshTokenAuthenticator,
-        private UserRepositoryInterface $userRepository,
         private RefreshTokenGenerator $refreshTokenGenerator,
         private ManagerRegistry $managerRegistry
     ) {
@@ -59,10 +57,25 @@ final class AuthController extends AbstractController
         );
     }
 
-    // todo
-    /*public function refreshAction(Request $request): JsonResponse
+    public function refreshAction(Request $request): JsonResponse
     {
-    }*/
+        $refreshToken = $request->headers->has(self::REFRESH_TOKEN_HEADER) ?
+            $request->headers->get(self::REFRESH_TOKEN_HEADER) : null;
+
+        $request->attributes->set('refresh_token', $refreshToken);
+
+        $firewallName = 'auth';
+        $passport = $this->refreshTokenAuthenticator->authenticate($request);
+        $token = $this->refreshTokenAuthenticator->createToken($passport, $firewallName);
+
+        /** @var JsonResponse $response */
+        $response = $this->refreshTokenAuthenticator->onAuthenticationSuccess($request, $token, $firewallName);
+
+        return $this->processResponse(
+            $request,
+            $response
+        );
+    }
 
     private function processResponse(Request $request, JsonResponse $response): JsonResponse
     {

@@ -97,14 +97,16 @@
   
   async function tryRefresh() {
     if (!refreshToken.value) return false
-    if (!isTokenValid(refreshToken.value, 0)) return false
   
     isRefreshing.value = true
     try {
       const res = await fetch('/api/auth/refresh', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken: refreshToken.value }),
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-REFRESH-TOKEN': refreshToken.value,
+        },
+        body: JSON.stringify({})
       })
   
       if (!res.ok) {
@@ -113,17 +115,17 @@
       }
   
       const data = await res.json()
-      if (!data.accessToken || !data.refreshToken) {
+      if (!data.token || !data.refresh_token) {
         clearAuth()
         return false
       }
   
-      if (!isTokenValid(data.accessToken)) {
+      if (!isTokenValid(data.token)) {
         clearAuth()
         return false
       }
   
-      saveTokens(data.accessToken, data.refreshToken)
+      saveTokens(data.token, data.refresh_token)
       loginError.value = '' // ensure no error when we’re successfully logged in
       return true
     } catch (e) {
@@ -166,11 +168,11 @@
         return
       }
 
-      if (!isTokenValid(accessTokenResp)) {
+      /*if (!isTokenValid(accessTokenResp)) {
         clearAuth()
         loginError.value = 'Received expired token'
         return
-      }
+      }*/
 
       saveTokens(accessTokenResp, refreshTokenResp)
       loginError.value = ''
@@ -196,7 +198,7 @@
   
     accessToken.value = null
   
-    if (refreshToken.value && isTokenValid(refreshToken.value, 0)) {
+    if (refreshToken.value) {
       await tryRefresh()
     } else {
       clearAuth()
