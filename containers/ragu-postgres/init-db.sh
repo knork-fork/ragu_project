@@ -44,6 +44,14 @@ fi
 if [[ $1 = "test" ]]
 then
     echo "Running test fixtures..."
+    # Run fixtures
+    # Note: fixtures will be a part of php-fpm-external to prevent both external and internal from having to duplicate them
+    docker exec -i ragu-php-fpm-external bin/console doctrine:fixtures:load --append --env=$1
+    if [[ $? -ne 0 ]]
+    then
+        echo "Failed running fixtures"
+        exit 2
+    fi
 fi
 
 echo "Database $db_name imported."
