@@ -6,6 +6,7 @@ $finder = (new PhpCsFixer\Finder())
         'config/',
         'public/',
         'src/',
+        'tests/',
     ])
     ->exclude([
         'var',
