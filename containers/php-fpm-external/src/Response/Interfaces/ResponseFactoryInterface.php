@@ -21,9 +21,16 @@ interface ResponseFactoryInterface
     public function createResponseArray(array $data): array;
 
     /**
-     * @param CollectionInterface<mixed, mixed>|mixed[] $collection
+     * @template TKey
+     * @template TValue
      *
-     * @return mixed[]
+     * @param CollectionInterface<TKey, TValue> $collection
+     *
+     * @return array{
+     *     has_next: bool,
+     *     total?: int,
+     *     data: array<TValue>
+     * }
      */
     public function createResponseCollection(CollectionInterface $collection): array;
 

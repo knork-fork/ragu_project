@@ -8,6 +8,7 @@ use App\Repository\RefreshTokenRepository;
 use App\Response\Interfaces\ResponseFactoryInterface;
 use Gesdinet\JWTRefreshTokenBundle\Generator\RefreshTokenGenerator;
 use Gesdinet\JWTRefreshTokenBundle\Security\Http\Authenticator\RefreshTokenAuthenticator;
+use InvalidArgumentException;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bridge\Doctrine\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -30,11 +31,6 @@ final class AuthController extends AbstractController
     ) {
     }
 
-    /**
-     * @throws Exception\JWTDecodeFailureException
-     * @throws \Doctrine\ORM\NonUniqueResultException
-     * @throws \Doctrine\ORM\ORMException
-     */
     public function loginAction(UserInterface $userInterface, Request $request): JsonResponse
     {
         $token = $this->JWTTokenManager->create($userInterface);
@@ -43,9 +39,10 @@ final class AuthController extends AbstractController
         $refreshToken = $this->refreshTokenGenerator->createForUserWithTtl($userInterface, $this->refreshTokenTtl);
         /** @var RefreshTokenRepository $refreshTokenRepository */
         $refreshTokenRepository = $this->managerRegistry->getRepository(RefreshToken::class);
-        $refreshTokenRepository
-            ->saveToken($refreshToken, $userInterface)
-        ;
+        if (!$userInterface instanceof \App\Entity\User) {
+            throw new InvalidArgumentException('User must be an instance of App\Entity\User');
+        }
+        $refreshTokenRepository->saveToken($refreshToken, $userInterface);
 
         $refreshTokenString = $refreshToken->__toString();
 

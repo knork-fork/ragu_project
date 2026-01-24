@@ -7,9 +7,9 @@ use App\Repository\Listing\Query\QueryForPaginatedPageResultInterface;
 
 final class ListingResult
 {
-    private bool $hasNext;
+    private bool $hasNext = false;
     /** @var mixed[] */
-    private array $results;
+    private array $results = [];
 
     public function __construct(
         private QueryForPaginatedPageResultInterface $query,

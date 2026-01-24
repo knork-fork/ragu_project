@@ -42,7 +42,16 @@ final class ResponseFactory implements ResponseFactoryInterface
     }
 
     /**
-     * @return mixed[]
+     * @template TKey
+     * @template TValue
+     *
+     * @param CollectionInterface<TKey, TValue> $collection
+     *
+     * @return array{
+     *     has_next: bool,
+     *     total?: int,
+     *     data: array<TValue>
+     * }
      */
     public function createResponseCollection(CollectionInterface $collection): array
     {

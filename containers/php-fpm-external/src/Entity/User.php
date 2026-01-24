@@ -16,13 +16,13 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private int $id;
+    private int $id = 0;
 
     #[ORM\Column(name: 'username', type: 'string', unique: true)]
     private string $username;
 
     #[ORM\Column(name: 'password', type: 'string')]
-    private string $password;
+    private string $password = '';
 
     #[ORM\Column(name: 'is_active', type: 'boolean', options: ['default' => true])]
     private bool $isActive;
@@ -123,6 +123,7 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
 
     public function getUserIdentifier(): string
     {
-        return $this->getUsername();
+        // Ensure non-empty-string
+        return $this->username !== '' ? $this->username : 'user';
     }
 }

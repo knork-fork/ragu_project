@@ -33,9 +33,13 @@ final class QueryForPaginatedPageResult implements QueryForPaginatedPageResultIn
         return $this->count;
     }
 
+    /**
+     * @return array<mixed>
+     */
     public function getResults(): array
     {
-        /* @var array<mixed> */
-        return $this->query->getResult();
+        $result = $this->query->getResult();
+
+        return \is_array($result) ? $result : [];
     }
 }

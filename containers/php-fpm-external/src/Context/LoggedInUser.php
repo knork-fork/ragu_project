@@ -5,13 +5,18 @@ namespace App\Context;
 
 use App\Context\Interfaces\LoggedInUserInterface;
 use App\Entity\User;
+use LogicException;
 
 final class LoggedInUser implements LoggedInUserInterface
 {
-    private User $user;
+    private ?User $user = null;
 
     public function getUser(): User
     {
+        if ($this->user === null) {
+            throw new LogicException('User is not set.');
+        }
+
         return $this->user;
     }
 

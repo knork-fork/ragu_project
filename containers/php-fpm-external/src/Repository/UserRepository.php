@@ -48,8 +48,11 @@ final class UserRepository extends AbstractEntityRepository implements UserRepos
             }
         }
 
-        /* @var User|null */
-        return $result;
+        if ($result instanceof User) {
+            return $result;
+        }
+
+        return null;
     }
 
     public function paginateGetAll(
@@ -57,7 +60,6 @@ final class UserRepository extends AbstractEntityRepository implements UserRepos
         int $pageSize,
     ): ListingResult {
         $queryBuilder = $this->createQueryBuilder('u');
-        $this->withActiveUnexpiredSubscriptions($queryBuilder);
         $queryBuilder->groupBy('u.id');
 
         return $this->getPaginatedResultsForQueryBuilder($queryBuilder, $page, $pageSize, true);
