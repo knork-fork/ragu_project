@@ -1,0 +1,3 @@
+[submodule "containers/queue-consumer"]
+	path = containers/queue-consumer
+	url = https://github.com/knork-fork/queue-consumer

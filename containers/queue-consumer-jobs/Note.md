@@ -1,0 +1,1 @@
+Make sure to mount this folder to the queue consumer container.
