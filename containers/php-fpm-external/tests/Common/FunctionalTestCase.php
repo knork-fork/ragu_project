@@ -86,4 +86,16 @@ abstract class FunctionalTestCase extends TestCase
 
         return $responseArray;
     }
+
+    /**
+     * @return mixed[]
+     */
+    protected function decodeJsonDataFromResponse(Response $response, ?int $expectedStatusCode = Response::HTTP_OK): array
+    {
+        $json = $this->decodeJsonFromResponse($response, $expectedStatusCode);
+
+        self::assertIsArray($json['data']);
+
+        return $json['data'];
+    }
 }

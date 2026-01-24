@@ -14,6 +14,8 @@ final class UserFixture extends Fixture
     public const TEST_USER_USERNAME = 'test_user';
     public const TEST_USER_PASSWORD = 'test_password';
 
+    public const INACTIVE_USER_USERNAME = 'inactive_user';
+
     public function __construct(
         private UserPasswordHasherInterface $passwordHasher,
     ) {
@@ -22,6 +24,7 @@ final class UserFixture extends Fixture
     public function load(ObjectManager $manager): void
     {
         $this->createUser($manager);
+        $this->createInactiveUser($manager);
     }
 
     private function createUser(ObjectManager $manager): void
@@ -33,5 +36,15 @@ final class UserFixture extends Fixture
         $manager->flush();
 
         $this->addReference(self::TEST_USER_REFERENCE, $user);
+    }
+
+    private function createInactiveUser(ObjectManager $manager): void
+    {
+        $user = new User(self::INACTIVE_USER_USERNAME);
+        $user->setPassword($this->passwordHasher->hashPassword($user, self::TEST_USER_PASSWORD));
+        $user->setIsActive(false);
+
+        $manager->persist($user);
+        $manager->flush();
     }
 }
