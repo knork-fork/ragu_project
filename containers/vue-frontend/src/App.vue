@@ -138,34 +138,41 @@
   
   async function handleLogin({ username, password }) {
     loginError.value = ''
-  
+
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-USERNAME': username,
+          'X-API-PASSWORD': password,
+        },
+        body: JSON.stringify({}), // send empty object or required payload
       })
-  
+
       if (!res.ok) {
         clearAuth()
         loginError.value = 'Invalid username or password'
         return
       }
-  
+
       const data = await res.json()
-      if (!data.accessToken || !data.refreshToken) {
+      // Extract tokens from backend response structure
+      const accessTokenResp = data?.data?.token
+      const refreshTokenResp = data?.data?.refresh_token
+      if (!accessTokenResp || !refreshTokenResp) {
         clearAuth()
         loginError.value = 'Malformed login response'
         return
       }
-  
-      if (!isTokenValid(data.accessToken)) {
+
+      if (!isTokenValid(accessTokenResp)) {
         clearAuth()
         loginError.value = 'Received expired token'
         return
       }
-  
-      saveTokens(data.accessToken, data.refreshToken)
+
+      saveTokens(accessTokenResp, refreshTokenResp)
       loginError.value = ''
     } catch (e) {
       console.error('login failed', e)
