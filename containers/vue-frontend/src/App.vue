@@ -1,47 +1,50 @@
 <template>
-    <div class="app-root">
-      <!-- Not authenticated: show login -->
-      <Login
-        v-if="!isAuthenticated"
-        @submit="handleLogin"
-        :error-message="loginError"
-      />
-  
-      <!-- Authenticated: show chat -->
-      <RetroTerminalChat
-        v-else
-        api-base="http://localhost:8080/v1"
-        model="rag-local"
-        system-prompt="You are a precise assistant grounded in provided context."
-        profile-name="User Name"
-        profile-email="user@example.com"
-        profile-avatar=""
-        :headers="authHeaders"
-        @logout="handleLogout"
-      />
-    </div>
-  </template>
+  <div class="app-root">
+    <!-- Not authenticated: show login -->
+    <Login
+      v-if="!isAuthenticated"
+      @submit="handleLogin"
+      :error-message="loginError"
+    />
+
+    <!-- Authenticated: show chat -->
+    <RetroTerminalChat
+      v-else
+      api-base="http://localhost:8080/v1"
+      model="rag-local"
+      system-prompt="You are a precise assistant grounded in provided context."
+      :profile-name="userProfile.name"
+      :profile-email="userProfile.email"
+      profile-avatar=""
+      :headers="authHeaders"
+      @logout="handleLogout"
+    />
+  </div>
+</template>
   
   <script setup>
-  import { ref, computed, onMounted } from 'vue'
-  import Login from './components/Login.vue'
-  import RetroTerminalChat from './components/RetroTerminalChat.vue'
-  
-  const accessToken = ref(null)
-  const refreshToken = ref(null)
-  const loginError = ref('')
-  const isRefreshing = ref(false)
-  
-  const isAuthenticated = computed(() => !!accessToken.value)
-  
-  const authHeaders = computed(() =>
-    accessToken.value ? { Authorization: `Bearer ${accessToken.value}` } : {}
-  )
-  
-  const STORAGE_KEYS = {
-    ACCESS: 'ragu_access_token',
-    REFRESH: 'ragu_refresh_token',
-  }
+
+import { ref, computed, onMounted } from 'vue'
+import Login from './components/Login.vue'
+import RetroTerminalChat from './components/RetroTerminalChat.vue'
+
+const accessToken = ref(null)
+const refreshToken = ref(null)
+const loginError = ref('')
+const isRefreshing = ref(false)
+
+const userProfile = ref({ name: '', email: '' })
+
+const isAuthenticated = computed(() => !!accessToken.value)
+
+const authHeaders = computed(() =>
+  accessToken.value ? { Authorization: `Bearer ${accessToken.value}` } : {}
+)
+
+const STORAGE_KEYS = {
+  ACCESS: 'ragu_access_token',
+  REFRESH: 'ragu_refresh_token',
+}
   
   function saveTokens(at, rt) {
     accessToken.value = at || null
@@ -67,10 +70,31 @@
     refreshToken.value = rt
   }
   
-  function clearAuth() {
-    saveTokens(null, null)
-    // IMPORTANT: don't reset loginError here
+
+function clearAuth() {
+  saveTokens(null, null)
+  userProfile.value = { name: '', email: '' }
+  // IMPORTANT: don't reset loginError here
+}
+  /**
+   * Fetch user profile from /api/user
+   */
+async function fetchUserProfile() {
+  try {
+    const res = await fetch('/api/user', {
+      headers: authHeaders.value,
+    })
+    if (!res.ok) throw new Error('Failed to fetch user profile')
+    const data = await res.json()
+    // Extract from data.user.fullname and data.user.email
+    userProfile.value = {
+      name: data?.data?.user?.fullname || '',
+      email: data?.data?.user?.email || '',
+    }
+  } catch (e) {
+    userProfile.value = { name: '', email: '' }
   }
+}
   
   /**
    * Minimal JWT decode just for "exp"
@@ -95,118 +119,121 @@
     return decoded.exp > now + skewSeconds
   }
   
-  async function tryRefresh() {
-    if (!refreshToken.value) return false
-  
-    isRefreshing.value = true
-    try {
-      const res = await fetch('/api/auth/refresh', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-REFRESH-TOKEN': refreshToken.value,
-        },
-        body: JSON.stringify({})
-      })
-  
-      if (!res.ok) {
-        clearAuth()
-        return false
-      }
-  
-      const data = await res.json()
-      // Extract tokens from backend response structure
-      const accessTokenResp = data?.data?.token
-      const refreshTokenResp = data?.data?.refresh_token
-      if (!accessTokenResp || !refreshTokenResp) {
-        clearAuth()
-        return false
-      }
-  
-      if (!isTokenValid(accessTokenResp)) {
-        clearAuth()
-        return false
-      }
-  
-      saveTokens(accessTokenResp, refreshTokenResp)
-      loginError.value = '' // ensure no error when we’re successfully logged in
-      return true
-    } catch (e) {
-      console.error('refresh failed', e)
+async function tryRefresh() {
+  if (!refreshToken.value) return false
+
+  isRefreshing.value = true
+  try {
+    const res = await fetch('/api/auth/refresh', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-REFRESH-TOKEN': refreshToken.value,
+      },
+      body: JSON.stringify({})
+    })
+
+    if (!res.ok) {
       clearAuth()
-      loginError.value = 'Unable to refresh session'
       return false
-    } finally {
-      isRefreshing.value = false
     }
-  }
-  
-  async function handleLogin({ username, password }) {
-    loginError.value = ''
 
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-USERNAME': username,
-          'X-API-PASSWORD': password,
-        },
-        body: JSON.stringify({}), // send empty object or required payload
-      })
-
-      if (!res.ok) {
-        clearAuth()
-        loginError.value = 'Invalid username or password'
-        return
-      }
-
-      const data = await res.json()
-      // Extract tokens from backend response structure
-      const accessTokenResp = data?.data?.token
-      const refreshTokenResp = data?.data?.refresh_token
-      if (!accessTokenResp || !refreshTokenResp) {
-        clearAuth()
-        loginError.value = 'Malformed login response'
-        return
-      }
-
-      if (!isTokenValid(accessTokenResp)) {
-        clearAuth()
-        loginError.value = 'Received expired token'
-        return
-      }
-
-      saveTokens(accessTokenResp, refreshTokenResp)
-      loginError.value = ''
-    } catch (e) {
-      console.error('login failed', e)
+    const data = await res.json()
+    // Extract tokens from backend response structure
+    const accessTokenResp = data?.data?.token
+    const refreshTokenResp = data?.data?.refresh_token
+    if (!accessTokenResp || !refreshTokenResp) {
       clearAuth()
-      loginError.value = 'Network or server error'
+      return false
     }
-  }
-  
-  function handleLogout() {
+
+    if (!isTokenValid(accessTokenResp)) {
+      clearAuth()
+      return false
+    }
+
+    saveTokens(accessTokenResp, refreshTokenResp)
+    loginError.value = '' // ensure no error when we’re successfully logged in
+    await fetchUserProfile()
+    return true
+  } catch (e) {
+    console.error('refresh failed', e)
     clearAuth()
-    loginError.value = ''
+    loginError.value = 'Unable to refresh session'
+    return false
+  } finally {
+    isRefreshing.value = false
   }
+}
   
-  async function initAuthFromStorage() {
-    loadTokens()
-  
-    if (isTokenValid(accessToken.value)) {
-      loginError.value = ''
+async function handleLogin({ username, password }) {
+  loginError.value = ''
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-USERNAME': username,
+        'X-API-PASSWORD': password,
+      },
+      body: JSON.stringify({}), // send empty object or required payload
+    })
+
+    if (!res.ok) {
+      clearAuth()
+      loginError.value = 'Invalid username or password'
       return
     }
-  
-    accessToken.value = null
-  
-    if (refreshToken.value) {
-      await tryRefresh()
-    } else {
+
+    const data = await res.json()
+    // Extract tokens from backend response structure
+    const accessTokenResp = data?.data?.token
+    const refreshTokenResp = data?.data?.refresh_token
+    if (!accessTokenResp || !refreshTokenResp) {
       clearAuth()
+      loginError.value = 'Malformed login response'
+      return
     }
+
+    if (!isTokenValid(accessTokenResp)) {
+      clearAuth()
+      loginError.value = 'Received expired token'
+      return
+    }
+
+    saveTokens(accessTokenResp, refreshTokenResp)
+    loginError.value = ''
+    await fetchUserProfile()
+  } catch (e) {
+    console.error('login failed', e)
+    clearAuth()
+    loginError.value = 'Network or server error'
   }
+}
+  
+function handleLogout() {
+  clearAuth()
+  loginError.value = ''
+}
+  
+async function initAuthFromStorage() {
+  loadTokens()
+
+  if (isTokenValid(accessToken.value)) {
+    loginError.value = ''
+    await fetchUserProfile()
+    return
+  }
+
+  accessToken.value = null
+
+  if (refreshToken.value) {
+    await tryRefresh()
+  } else {
+    clearAuth()
+  }
+}
   
   onMounted(() => {
     initAuthFromStorage()
