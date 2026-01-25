@@ -572,10 +572,10 @@ function settings(){ emit('action','settings'); showMenu.value=false }
 .rt-scanlines{ pointer-events:none; position:absolute; inset:0; background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px); background-size:100% 2px; mix-blend-mode:soft-light; opacity:.35; }
 .rt-grid{ pointer-events:none; position:absolute; inset:0; background:linear-gradient(to right,var(--ui-grid) 1px,transparent 1px),linear-gradient(to bottom,var(--ui-grid) 1px,transparent 1px); background-size:24px 24px; mask-image:radial-gradient(ellipse at center,black 60%,transparent 100%); opacity:.35; }
 .rt-log{ position:relative; padding:16px; overflow:auto; display:flex; flex-direction:column; gap:12px; }
-.rt-line{ display:grid; grid-template-columns:auto 1fr; align-items:start; gap:10px; background:rgba(13,26,36,.6); border:1px solid var(--ui-border); border-left:4px solid var(--ui-grid); padding:10px 12px; border-radius:10px; }
+.rt-line{ display:grid; grid-template-columns:auto 1fr; align-items:center; gap:10px; background:rgba(13,26,36,.6); border:1px solid var(--ui-border); border-left:4px solid var(--ui-grid); padding:10px 12px; border-radius:10px; }
 .rt-line.rt-user{border-left-color:var(--ui-user);} .rt-line.rt-assistant{border-left-color:var(--ui-assistant);} .rt-line.rt-system{border-left-color:var(--ui-warn); opacity:.9}
 .rt-tag{ color:var(--ui-muted); min-width:90px; }
-.rt-msg{ margin:0; white-space:pre-wrap; word-break:break-word; font-variant-ligatures:none; image-rendering:pixelated; }
+.rt-msg{ margin:0; white-space:pre-wrap; word-break:break-word; font-variant-ligatures:none; image-rendering:pixelated; display:flex; align-items:center; min-height:1.5em; }
 .rt-composer{ display:flex; align-items:center; gap:12px; padding:12px 14px; border-top:1px solid var(--ui-border); background:linear-gradient(180deg,#0b1520,#09121a); }
 .rt-inputwrap{ display:grid; grid-template-columns:14px 1fr auto; align-items:center; gap:8px; background:#0d1a24; border:1px solid var(--ui-border); border-radius:8px; padding:10px; box-shadow:inset 0 0 0 1px rgba(94,231,255,.05); }
 .rt-input-full{ width:100%; }
