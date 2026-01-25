@@ -28,7 +28,10 @@ const messages = ref([])
 
 function nano() { return Math.random().toString(36).slice(2) }
 function saveSessions(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions.value)) }catch{} }
-function bindMessages(){ const s=sessions.value.find(x=>x.id===currentId.value); messages.value = s ? s.messages : [] }
+function bindMessages(){
+  const s = sessions.value.find(x => x.id === currentId.value)
+  messages.value = s ? s.messages : []
+}
 function selectSession(id){ currentId.value = id; bindMessages() }
 function newSession(title){
   const s={ id:nano(), title:title||'New Chat', createdAt:Date.now(), messages:[] }
@@ -42,8 +45,18 @@ function deleteSession(id){
 function renameSession(id,title){ const s=sessions.value.find(x=>x.id===id); if(s) s.title=title }
 
 onMounted(()=>{
-  try{ const raw=localStorage.getItem(STORAGE_KEY); if(raw) sessions.value = JSON.parse(raw)||[] }catch{}
-  if(!sessions.value.length) newSession('New Chat'); else { currentId.value = sessions.value[0].id; bindMessages() }
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (raw) {
+      // Ensure chat_id is preserved in session objects
+      sessions.value = JSON.parse(raw) || []
+    }
+  } catch {}
+  if (!sessions.value.length) newSession('New Chat')
+  else {
+    currentId.value = sessions.value[0].id
+    bindMessages()
+  }
 })
 watch(sessions, saveSessions, { deep:true })
 
@@ -180,53 +193,43 @@ async function send(){
 
   add('user', content); input.value=''; sending.value=true
 
-  const s=sessions.value.find(x=>x.id===currentId.value)
-  if(s && (s.title==='New Chat'||s.title==='Untitled')) renameSession(s.id, content.slice(0,40))
+  const s = sessions.value.find(x => x.id === currentId.value)
+  if (s && (s.title === 'New Chat' || s.title === 'Untitled')) renameSession(s.id, content.slice(0, 40))
 
-  try{
-    const body={
+  try {
+    // Prepare body for /api/prompt-send
+    const body = {
+      prompt: content,
       model: selectedModel.value || props.model || 'your-rag-model',
-      messages: messages.value.filter(m=>m.role!=='system').map(m=>({ role:m.role, content:m.content })),
-      stream: !!props.stream,
       tools: { rag: { enabled: ragEnabled.value, topic: ragTopic.value || null } }
     }
-    const res=await fetch((props.apiBase.replace(/\/$/,''))+props.apiPath,{
-      method:'POST',
-      headers:Object.assign({ 'content-type':'application/json' }, props.apiKey?{authorization:'Bearer '+props.apiKey}:{}, props.headers||{}),
-      body:JSON.stringify(body)
+    // Attach chat_id if present in session
+    if (s && s.chat_id) body.chat_id = s.chat_id
+
+    // Always use /api/prompt-send for prompt
+    const res = await fetch('/api/prompt-send', {
+      method: 'POST',
+      headers: Object.assign(
+        { 'content-type': 'application/json' },
+        props.apiKey ? { authorization: 'Bearer ' + props.apiKey } : {},
+        props.headers || {}
+      ),
+      body: JSON.stringify(body)
     })
 
-    if(!props.stream || !res.body || !res.body.getReader){
-      const j=await res.json().catch(()=>({}))
-      const text=(j?.choices?.[0]?.message?.content) || String(j||'')
-      add('assistant', text); sending.value=false; return
+    const j = await res.json().catch(() => ({}))
+    // Store chat_id in session if returned
+    const chatIdFromResp = j?.data?.prompt?.chat_id
+    if (chatIdFromResp && s) {
+      s.chat_id = chatIdFromResp
+      saveSessions()
     }
 
-    const reader=res.body.getReader(); let acc=''; const assistantId=nano()
-    messages.value.push({ id:assistantId, role:'assistant', content:'' })
-    while(true){
-      const chunk=await reader.read(); if(chunk.done) break
-      const decoded=new TextDecoder().decode(chunk.value,{stream:true}); acc+=decoded
-      const parts=acc.split('\n'); acc=parts.pop()||''
-      for(let i=0;i<parts.length;i++){
-        const line=(parts[i]||'').trim(); if(!line) continue
-        if(line.indexOf('data:')===0){
-          const payload=line.slice(5).trim(); if(payload==='[DONE]') continue
-          let delta=''; try{
-            const j=JSON.parse(payload)
-            delta=(j?.choices?.[0]?.delta?.content) ||
-                  (j?.choices?.[0]?.message?.content) ||
-                  j.content || ''
-          }catch(e){ delta=line+'\n' }
-          const msg=messages.value.find(m=>m.id===assistantId); if(msg && delta) msg.content+=delta
-        } else {
-          const msg=messages.value.find(m=>m.id===assistantId); if(msg) msg.content+=line+'\n'
-        }
-      }
-    }
-  }catch(err){
-    emit('error', err); add('assistant','[error] '+(err?.message ?? String(err)))
-  }finally{ sending.value=false }
+    // Optionally, you can add a system/assistant message to indicate sent
+    add('system', '[prompt sent]')
+  } catch (err) {
+    emit('error', err); add('assistant', '[error] ' + (err?.message ?? String(err)))
+  } finally { sending.value = false }
 }
 
 /* ---------- PROFILE ---------- */
