@@ -234,7 +234,9 @@ async function send(){
     }
 
     // Optionally, you can add a system/assistant message to indicate sent
-    add('system', '[prompt sent]')
+    //add('system', '[prompt sent]')
+    //add('assistant', 'Hello world')
+    add('waiting')
   } catch (err) {
     emit('error', err); add('assistant', '[error] ' + (err?.message ?? String(err)))
   } finally { sending.value = false }
@@ -408,7 +410,10 @@ function settings(){ emit('action','settings'); showMenu.value=false }
 
       <main ref="logRef" class="rt-log">
         <template v-for="m in messages" :key="m.id">
-          <div class="rt-line" :class="'rt-'+m.role">
+          <div v-if="m.role === 'waiting'" class="rt-line rt-waiting">
+            <span class="rt-waiting-dots" aria-label="waiting"></span>
+          </div>
+          <div v-else class="rt-line" :class="'rt-'+m.role">
             <span class="rt-tag">[{{ m.role.toUpperCase() }}]</span>
             <pre class="rt-msg">{{ m.content }}</pre>
           </div>
@@ -593,7 +598,49 @@ function settings(){ emit('action','settings'); showMenu.value=false }
 .rt-caret{ color:var(--ui-accent); }
 .rt-input{ background:transparent; border:none; outline:none; color:var(--ui-text); font-family:var(--ui-font); letter-spacing:.3px; }
 .rt-sendbtn{ background:#0d1a24; border:1px solid var(--ui-border); color:var(--ui-text); border-radius:6px; padding:6px 10px; cursor:pointer; box-shadow:inset 0 0 0 1px rgba(94,231,255,.06); }
+
 .rt-sendbtn:disabled{ opacity:.5; cursor:not-allowed; }
+
+/* Waiting message (calm pulsing dots) */
+.rt-line.rt-waiting {
+  border-left-color: var(--ui-accent);
+  background: rgba(13,26,36,.4);
+  justify-content: flex-start;
+  min-height: 1.5em;
+}
+
+.rt-waiting-dots {
+  display: inline-block;
+  width: 36px;
+  height: 1.2em;
+  position: relative;
+  vertical-align: middle;
+}
+
+/* Three synced dots */
+.rt-waiting-dots::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: var(--ui-accent);
+  box-shadow:
+    12px 0 0 0 var(--ui-accent),
+    24px 0 0 0 var(--ui-accent);
+  animation: rt-dots-pulse 1.6s infinite ease-in-out;
+}
+
+@keyframes rt-dots-pulse {
+  0%   { opacity: .25; }
+  50%  { opacity: .85; }
+  100% { opacity: .25; }
+}
+
+
 
 @media (max-width:900px){
   .rt-root{ grid-template-columns:0 1fr; }
