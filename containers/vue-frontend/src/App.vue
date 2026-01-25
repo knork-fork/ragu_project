@@ -18,11 +18,20 @@
       profile-avatar=""
       :headers="authHeaders"
       @logout="handleLogout"
+      :onEnsureAuth="ensureAuthBeforePrompt"
     />
   </div>
 </template>
   
-  <script setup>
+
+<script setup>
+// Ensure valid token before sending prompt
+async function ensureAuthBeforePrompt() {
+  if (isTokenValid(accessToken.value)) return
+  if (refreshToken.value) {
+    await tryRefresh()
+  }
+}
 
 import { ref, computed, onMounted } from 'vue'
 import Login from './components/Login.vue'

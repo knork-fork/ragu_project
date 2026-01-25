@@ -16,6 +16,9 @@ const props = defineProps({
   profileName:  { type: String, default: 'Anonymous' },
   profileEmail: { type: String, default: '' },
   profileAvatar:{ type: String, default: '' },
+
+  /* Optional: callback to refresh token if needed */
+  onEnsureAuth: { type: Function, default: null },
 })
 
 const emit = defineEmits(['action', 'error', 'modeChange', 'logout'])
@@ -197,6 +200,11 @@ async function send(){
   if (s && (s.title === 'New Chat' || s.title === 'Untitled')) renameSession(s.id, content.slice(0, 40))
 
   try {
+    // Ensure valid auth if callback provided
+    if (typeof props.onEnsureAuth === 'function') {
+      await props.onEnsureAuth()
+    }
+
     // Prepare body for /api/prompt-send
     const body = {
       prompt: content,
