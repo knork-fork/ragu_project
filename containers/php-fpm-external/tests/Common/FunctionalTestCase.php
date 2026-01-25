@@ -10,6 +10,9 @@ abstract class FunctionalTestCase extends TestCase
 {
     public const BASE_URL = 'http://ragu-webserver/api';
 
+    /** @var array<string, string> */
+    private static array $tokensCache = [];
+
     protected function tearDown(): void
     {
         parent::tearDown();
@@ -19,7 +22,7 @@ abstract class FunctionalTestCase extends TestCase
      * @param mixed[] $params
      * @param mixed[] $headers
      */
-    protected function makeRequest(string $method, string $uri, array $params = [], array $headers = [], string $baseUrl = self::BASE_URL): Response
+    protected function makeRequest(string $method, string $uri, array $params = [], array $headers = []): Response
     {
         if (!empty(getenv('XDEBUG_SESSION_START'))) {
             $uri .= !str_contains($uri, '?') ? '?' : '&';
@@ -49,7 +52,7 @@ abstract class FunctionalTestCase extends TestCase
         // @phpstan-ignore-next-line
         curl_setopt_array($ch, [
             \CURLOPT_RETURNTRANSFER => true,
-            \CURLOPT_URL => $baseUrl . $uri,
+            \CURLOPT_URL => self::BASE_URL . $uri,
             \CURLOPT_SSL_VERIFYHOST => 0,
             \CURLOPT_SSL_VERIFYPEER => 0,
             \CURLOPT_CUSTOMREQUEST => $method,
@@ -71,6 +74,19 @@ abstract class FunctionalTestCase extends TestCase
             $statusCode,
             $responseHeaders
         );
+    }
+
+    /**
+     * @param mixed[] $params
+     * @param mixed[] $headers
+     */
+    protected function makeRequestAsUser(string $username, string $password, string $method, string $uri, array $params = [], array $headers = []): Response
+    {
+        $accessToken = $this->login($username, $password);
+
+        $requestHeaders = array_merge($headers, ['Authorization: ' . \sprintf('Bearer %s', $accessToken)]);
+
+        return $this->makeRequest($method, $uri, $params, $requestHeaders);
     }
 
     /**
@@ -97,5 +113,34 @@ abstract class FunctionalTestCase extends TestCase
         self::assertIsArray($json['data']);
 
         return $json['data'];
+    }
+
+    private function login(string $username, string $password): string
+    {
+        $cacheKey = \sprintf(
+            '%s/%s',
+            $username,
+            $password
+        );
+
+        if (!isset(self::$tokensCache[$cacheKey])) {
+            $response = $this->makeRequest(
+                Request::METHOD_POST,
+                '/auth/login',
+                [],
+                [
+                    'X-API-USERNAME: ' . $username,
+                    'X-API-PASSWORD: ' . $password,
+                ]
+            );
+
+            $data = $this->decodeJsonDataFromResponse($response, Response::HTTP_OK);
+            self::assertArrayHasKey('token', $data);
+            self::assertIsString($data['token']);
+
+            self::$tokensCache[$cacheKey] = $data['token'];
+        }
+
+        return self::$tokensCache[$cacheKey];
     }
 }

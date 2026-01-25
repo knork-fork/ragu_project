@@ -31,3 +31,7 @@ services:
             - [ setContainer, [ '@service_container' ] ]
         tags:
             - { name: controller.service_arguments }
+
+    App\EventListener\SetLoggedInUserListener:
+        tags:
+            - { name: kernel.event_listener, event: kernel.request }
