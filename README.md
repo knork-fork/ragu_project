@@ -5,6 +5,8 @@
 #### Installation
 
 ```bash
+git submodule init && git submodule update
+
 docker-compose up --build -d
 
 containers/php-fpm-external/docker/composer install
