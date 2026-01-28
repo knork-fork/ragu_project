@@ -20,7 +20,7 @@ final class PromptController
 
     /**
      * Send a prompt to be processed in the background job queue
-     * 
+     *
      * If chat_id is provided prompt is part of the existing chat, otherwise a new chat is created
      */
     #[Route('/prompt-send', name: 'prompt-send', methods: ['POST'])]
